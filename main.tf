@@ -3,7 +3,7 @@ provider "google" {
   project     = "my-ever-first-project"
   region      = "us-central1"
   zone        = "us-central1-a"
-#manoj
+  #manoj
 }
 
 # -------------------------------
@@ -112,18 +112,18 @@ resource "google_compute_firewall" "allow_ssh_http" {
 # -------------------------------
 
 resource "google_sql_database_instance" "postgres_instance" {
-  name             = "my-postgres-instance"
-  database_version = "POSTGRES_14"
-  region           = "us-central1"
+  name                = "my-postgres-instance"
+  database_version    = "POSTGRES_14"
+  region              = "us-central1"
   deletion_protection = false
 
   settings {
-    tier = "db-f1-micro"   # small test tier, change for prod
-    disk_size = 20         # GB
-    disk_type = "PD_SSD"
+    tier              = "db-f1-micro" # small test tier, change for prod
+    disk_size         = 20            # GB
+    disk_type         = "PD_SSD"
     availability_type = "ZONAL"
     ip_configuration {
-      ipv4_enabled    = true
+      ipv4_enabled = true
       authorized_networks {
         name  = "vpc-access"
         value = "0.0.0.0/0" # For demo; restrict in production
