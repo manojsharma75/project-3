@@ -2,13 +2,11 @@ name: Terraform GCP Deployment
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
 
 jobs:
   terraform:
-    name: 'Terraform Apply'
     runs-on: ubuntu-latest
 
     env:
@@ -17,35 +15,46 @@ jobs:
       GOOGLE_CLOUD_ZONE: us-central1-a
 
     steps:
-      # Checkout repo
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      # Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.8.5   # pick a stable version
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.8.5
 
-      # Authenticate with GCP
-      - name: Setup GCP Credentials
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-      # Initialize Terraform
-      - name: Terraform Init
-        run: terraform init
+    - name: Terraform Init
+      run: terraform init
 
-      # Validate Terraform
-      - name: Terraform Validate
-        run: terraform validate
+    - name: Terraform Format
+      run: terraform fmt -check
 
-      # Plan Terraform
-      - name: Terraform Plan
-        run: terraform plan -input=false
+    - name: Terraform Validate
+      run: terraform validate
 
-      # Apply Terraform (only on push to main)
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -input=false
+    - name: Terraform Lint
+      uses: terraform-linters/setup-tflint@v4
+
+    - name: Run TFLint
+      run: tflint
+
+    - name: Security Scan
+      uses: bridgecrewio/checkov-action@v12
+
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
+
+    - name: Upload Plan
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan
+        path: tfplan
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main'
+      run: terraform apply -auto-approve tfplan
