@@ -1,8 +1,8 @@
 provider "google" {
-  
-  project     = "my-ever-first-project"
-  region      = "us-central1"
-  zone        = "us-central1-a"
+
+  project = "my-ever-first-project"
+  region  = "us-central1"
+  zone    = "us-central1-a"
   #manoj
 }
 
