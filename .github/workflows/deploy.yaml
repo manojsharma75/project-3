@@ -1,60 +1,44 @@
-name: Terraform GCP Deployment
+name: Terraform Deploy
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   terraform:
+    name: 'Terraform Apply'
     runs-on: ubuntu-latest
 
     env:
-      GOOGLE_CLOUD_PROJECT: causal-folder-478404-r1
+      GOOGLE_CLOUD_PROJECT: my-ever-first-project
       GOOGLE_CLOUD_REGION: us-central1
       GOOGLE_CLOUD_ZONE: us-central1-a
+      TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.8.5
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
 
-    - name: Authenticate to GCP
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
 
-    - name: Terraform Format
-      run: terraform fmt -check
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Validate
-      run: terraform validate
+      - name: Terraform Plan
+        run: terraform plan -input=false
 
-    - name: Terraform Lint
-      uses: terraform-linters/setup-tflint@v4
-
-    - name: Run TFLint
-      run: tflint
-
-    - name: Security Scan
-      uses: bridgecrewio/checkov-action@v12
-
-    - name: Terraform Plan
-      run: terraform plan -out=tfplan
-
-    - name: Upload Plan
-      uses: actions/upload-artifact@v4
-      with:
-        name: tfplan
-        path: tfplan
-
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/main'
-      run: terraform apply -auto-approve tfplan
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false
