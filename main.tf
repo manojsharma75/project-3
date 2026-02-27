@@ -1,5 +1,20 @@
-provider "google" {
+terraform {
+  required_version = "~> 1.0"
 
+  backend "gcs" {
+    bucket = "manojsharma-terraform-state"
+    prefix = "project-3/state"
+  }
+
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 7.0"
+    }
+  }
+}
+
+provider "google" {
   project = "my-ever-first-project"
   region  = "us-central1"
   zone    = "us-central1-a"
@@ -39,73 +54,24 @@ resource "google_compute_firewall" "allow_ssh_http" {
 # # -------------------------------
 # # VM Instances
 # # -------------------------------
-# resource "google_compute_instance" "web_vm" {
-#   name         = "web-tier-vm"
-#   machine_type = "e2-medium"
-#   zone         = "us-central1-a"
-#   deletion_protection = false
+resource "google_compute_instance" "web_vm" {
+name         = "web-tier-vm"
+machine_type = "e2-medium"
+zone         = "us-central1-a"
+deletion_protection = false
 
-#   boot_disk {
-#     initialize_params {
-#       image = "debian-cloud/debian-11"
-#     }
-#   }
+boot_disk {
+initialize_params {
+image = "debian-cloud/debian-11"
+ }
+}
 
-#   network_interface {
-#     subnetwork   = google_compute_subnetwork.subnet.name
-#     access_config {} # External IP
-#   }
-# }
+network_interface {
+subnetwork   = google_compute_subnetwork.subnet.name
+access_config {} # External IP
+}
+}
 
-# resource "google_compute_instance" "app_vm" {
-#   name         = "app-tier-vm"
-#   machine_type = "e2-medium"
-#   zone         = "us-central1-a"
-#   deletion_protection = false
-
-#   boot_disk {
-#     initialize_params {
-#       image = "debian-cloud/debian-11"
-#     }
-#   }
-
-#   network_interface {
-#     subnetwork   = google_compute_subnetwork.subnet.name
-#     access_config {} # External IP
-#   }
-# }
-
-# -------------------------------
-# Cloud SQL Instance (MySQL)
-# -------------------------------
-# resource "google_sql_database_instance" "db_instance" {
-#   name             = "two-tier-sql"
-#   database_version = "MYSQL_8_0"
-#   region           = "us-central1"
-#   deletion_protection = false
-
-#   settings {
-#     tier = "db-f1-micro"
-#     ip_configuration {
-#       ipv4_enabled    = true
-#       authorized_networks {
-#         name  = "vpc-access"
-#         value = "0.0.0.0/0" # For demo; restrict in production
-#       }
-#     }
-#   }
-# }
-
-# resource "google_sql_database" "app_db" {
-#   name     = "appdb"
-#   instance = google_sql_database_instance.db_instance.name
-# }
-
-# resource "google_sql_user" "db_user" {
-#   name     = "appuser"
-#   instance = google_sql_database_instance.db_instance.name
-#   password = "StrongPassword123!"
-# }
 
 # -------------------------------
 # Cloud SQL Instance (postgress)
